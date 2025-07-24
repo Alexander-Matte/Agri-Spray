@@ -35,7 +35,7 @@ class Pilot
     /**
      * @var Collection<int, Mission>
      */
-    #[ORM\OneToMany(targetEntity: Mission::class, mappedBy: 'piÃlot')]
+    #[ORM\OneToMany(targetEntity: Mission::class, mappedBy: 'pilot')]
     private Collection $missions;
 
     public function __construct()
@@ -120,7 +120,7 @@ class Pilot
     {
         if (!$this->missions->contains($mission)) {
             $this->missions->add($mission);
-            $mission->setPiÃlot($this);
+            $mission->setPiï¿½lot($this);
         }
 
         return $this;
@@ -130,8 +130,8 @@ class Pilot
     {
         if ($this->missions->removeElement($mission)) {
             // set the owning side to null (unless already changed)
-            if ($mission->getPiÃlot() === $this) {
-                $mission->setPiÃlot(null);
+            if ($mission->getPiï¿½lot() === $this) {
+                $mission->setPiï¿½lot(null);
             }
         }
 
