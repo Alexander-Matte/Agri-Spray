@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
 use App\State\UserPasswordHasher;
+use App\State\UserProcessor;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -22,10 +23,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new GetCollection(),
-        new Post(processor: UserPasswordHasher::class, validationContext: ['groups' => ['Default', 'user:create']]),
+        new Post(processor: UserProcessor::class, validationContext: ['groups' => ['Default', 'user:create']]),
         new Get(),
-        new Put(processor: UserPasswordHasher::class),
-        new Patch(processor: UserPasswordHasher::class),
+        new Put(processor: UserProcessor::class),
+        new Patch(processor: UserProcessor::class),
         new Delete(),
     ],
     normalizationContext: ['groups' => ['user:read']],
@@ -55,7 +56,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:create', 'user:update'])]
     private ?string $plainPassword = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'user:create', 'user:update'])]
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 

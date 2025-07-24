@@ -120,7 +120,7 @@ class Pilot
     {
         if (!$this->missions->contains($mission)) {
             $this->missions->add($mission);
-            $mission->setPi�lot($this);
+            $mission->setPilot($this);
         }
 
         return $this;
@@ -130,8 +130,8 @@ class Pilot
     {
         if ($this->missions->removeElement($mission)) {
             // set the owning side to null (unless already changed)
-            if ($mission->getPi�lot() === $this) {
-                $mission->setPi�lot(null);
+            if ($mission->getPilot() === $this) {
+                $mission->setPilot(null);
             }
         }
 
