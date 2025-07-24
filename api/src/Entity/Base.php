@@ -3,14 +3,14 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
-use App\Repository\PilotRepository;
+use App\Repository\BaseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: PilotRepository::class)]
+#[ORM\Entity(repositoryClass: BaseRepository::class)]
 #[ApiResource]
-class Pilot
+class Base
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -21,21 +21,12 @@ class Pilot
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $email = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updatedAt = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $phoneNumber = null;
+    private ?string $location = null;
 
     /**
      * @var Collection<int, Mission>
      */
-    #[ORM\OneToMany(targetEntity: Mission::class, mappedBy: 'pi홯ot')]
+    #[ORM\OneToMany(targetEntity: Mission::class, mappedBy: 'base')]
     private Collection $missions;
 
     public function __construct()
@@ -60,50 +51,14 @@ class Pilot
         return $this;
     }
 
-    public function getEmail(): ?string
+    public function getLocation(): ?string
     {
-        return $this->email;
+        return $this->location;
     }
 
-    public function setEmail(string $email): static
+    public function setLocation(string $location): static
     {
-        $this->email = $email;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
-
-    public function getPhoneNumber(): ?string
-    {
-        return $this->phoneNumber;
-    }
-
-    public function setPhoneNumber(string $phoneNumber): static
-    {
-        $this->phoneNumber = $phoneNumber;
+        $this->location = $location;
 
         return $this;
     }
@@ -120,7 +75,7 @@ class Pilot
     {
         if (!$this->missions->contains($mission)) {
             $this->missions->add($mission);
-            $mission->setPi홯ot($this);
+            $mission->setBase($this);
         }
 
         return $this;
@@ -130,8 +85,8 @@ class Pilot
     {
         if ($this->missions->removeElement($mission)) {
             // set the owning side to null (unless already changed)
-            if ($mission->getPi홯ot() === $this) {
-                $mission->setPi홯ot(null);
+            if ($mission->getBase() === $this) {
+                $mission->setBase(null);
             }
         }
 
