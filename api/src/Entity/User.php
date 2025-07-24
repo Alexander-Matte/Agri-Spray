@@ -12,7 +12,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
-use App\State\UserPasswordHasher;
+use ApiPlatform\Metadata\ApiProperty;
 use App\State\UserProcessor;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
