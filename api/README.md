@@ -19,7 +19,9 @@ docker compose build --pull --no-cache
 docker compose up --wait
 ```
 
-3. Access the API at https://localhost in your browser or via your client application.
+3. Access the API at:
+    - https://localhost Symfony API
+    - http://localhost:8081 – pgAdmin (to view your PostgreSQL database. See credentials in compose.yaml)
 
 4. To stop the containers, run:
 
