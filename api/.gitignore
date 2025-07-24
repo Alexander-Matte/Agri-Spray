@@ -1,0 +1,36 @@
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# PHP temp / cache files
+*.php~
+*.cache
+
+# Environment variable files
+.env.local
+.env.*.local
+.env.local.php
+.env.test
+.env.prod
+.env.production
+
+# Vendor and var directories
+/vendor/
+/var/
+
+# IDE/editor configs (optional)
+.idea/
+.vscode/
+*.iml
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
