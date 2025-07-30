@@ -3,15 +3,35 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\MissionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: MissionRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Post(validationContext: ['groups' => ['Default', 'mission:create']], security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT')"),
+        new Get(),
+        new Put(validationContext: ['groups' => ['Default', 'mission:update']], security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT')"),
+        new Patch(validationContext: ['groups' => ['Default', 'mission:update']], security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT')"),
+        new Delete(security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT')"),
+    ],
+    normalizationContext: ['groups' => ['mission:read']],
+    denormalizationContext: ['groups' => ['mission:create', 'mission:update']],
+)]
 class Mission
 {
+    #[Groups(['mission:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -20,36 +40,102 @@ class Mission
     /**
      * @var Collection<int, Load>
      */
+    #[Groups(['mission:read'])]
     #[ORM\OneToMany(targetEntity: Load::class, mappedBy: 'mission')]
     private Collection $loads;
 
+    #[Assert\NotBlank(message: 'Mission title is required.')]
+    #[Assert\Length(
+        min: 3,
+        max: 255,
+        minMessage: 'Mission title must be at least {{ limit }} characters long.',
+        maxMessage: 'Mission title cannot be longer than {{ limit }} characters.'
+    )]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z0-9\s\-\.\,\:\/\(\)]+$/',
+        message: 'Mission title can only contain letters, numbers, spaces, hyphens, dots, commas, colons, slashes, and parentheses.'
+    )]
+    #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
 
+    #[Assert\NotBlank(message: 'Mission type is required.')]
+    #[Assert\Choice(
+        choices: ['herbicide', 'fungicide', 'insecticide', 'fertilizer', 'seed', 'other'],
+        message: 'Mission type must be one of: herbicide, fungicide, insecticide, fertilizer, seed, or other.'
+    )]
+    #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $type = null;
 
+    #[Assert\NotNull(message: 'Total field size is required.')]
+    #[Assert\Positive(message: 'Total field size must be greater than zero.')]
+    #[Assert\Range(
+        min: 0.1,
+        max: 10000.0,
+        notInRangeMessage: 'Total field size must be between {{ min }} and {{ max }} hectares.'
+    )]
+    #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column]
     private ?float $fieldSizeTotal = null;
 
+    #[Assert\NotNull(message: 'Sprayable field size is required.')]
+    #[Assert\Positive(message: 'Sprayable field size must be greater than zero.')]
+    #[Assert\Range(
+        min: 0.1,
+        max: 10000.0,
+        notInRangeMessage: 'Sprayable field size must be between {{ min }} and {{ max }} hectares.'
+    )]
+    #[Assert\Expression(
+        "this.getFieldSizeSprayable() <= this.getFieldSizeTotal()",
+        message: 'Sprayable field size cannot be larger than total field size.'
+    )]
+    #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column]
     private ?float $fieldSizeSprayable = null;
 
+    #[Assert\NotBlank(message: 'Location is required.')]
+    #[Assert\Length(
+        min: 3,
+        max: 255,
+        minMessage: 'Location must be at least {{ limit }} characters long.',
+        maxMessage: 'Location cannot be longer than {{ limit }} characters.'
+    )]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z0-9\s\-\.\,\:\/\(\)]+$/',
+        message: 'Location can only contain letters, numbers, spaces, hyphens, dots, commas, colons, slashes, and parentheses.'
+    )]
+    #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $location = null;
 
+    #[Groups(['mission:read'])]
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    #[Groups(['mission:read'])]
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[Assert\GreaterThan(
+        'today',
+        message: 'Scheduled date must be in the future.'
+    )]
+    #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $scheduledAt = null;
 
+    #[Assert\NotBlank(message: 'Mission status is required.')]
+    #[Assert\Choice(
+        choices: ['planned', 'scheduled', 'in_progress', 'completed', 'cancelled', 'on_hold'],
+        message: 'Mission status must be one of: planned, scheduled, in_progress, completed, cancelled, or on_hold.'
+    )]
+    #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column(length: 255)]
     private ?string $status = null;
 
+    #[Assert\NotNull(message: 'Pilot is required.')]
+    #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\ManyToOne(inversedBy: 'missions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Pilot $pilot = null;
@@ -57,13 +143,22 @@ class Mission
     /**
      * @var Collection<int, Aircraft>
      */
+    #[Assert\Count(
+        min: 1,
+        minMessage: 'At least one aircraft must be assigned to the mission.'
+    )]
+    #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\ManyToMany(targetEntity: Aircraft::class, inversedBy: 'missions')]
     private Collection $aircraft;
 
+    #[Assert\NotNull(message: 'Customer is required.')]
+    #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\ManyToOne(inversedBy: 'missions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Customer $customer = null;
 
+    #[Assert\NotNull(message: 'Base is required.')]
+    #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\ManyToOne(inversedBy: 'missions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Base $base = null;
@@ -72,6 +167,8 @@ class Mission
     {
         $this->loads = new ArrayCollection();
         $this->aircraft = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->status = 'planned';
     }
 
     public function getId(): ?int

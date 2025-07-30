@@ -3,41 +3,102 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\LoadRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LoadRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Post(validationContext: ['groups' => ['Default', 'load:create']], security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT') or is_granted('ROLE_LOADER')"),
+        new Get(),
+        new Put(validationContext: ['groups' => ['Default', 'load:update']], security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT') or is_granted('ROLE_LOADER')"),
+        new Patch(validationContext: ['groups' => ['Default', 'load:update']], security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT') or is_granted('ROLE_LOADER')"),
+        new Delete(security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT') or is_granted('ROLE_LOADER')"),
+    ],
+    normalizationContext: ['groups' => ['load:read']],
+    denormalizationContext: ['groups' => ['load:create', 'load:update']],
+)]
 class Load
 {
+    #[Groups(['load:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotNull(message: 'Load number is required.')]
+    #[Assert\Positive(message: 'Load number must be greater than zero.')]
+    #[Assert\Range(
+        min: 1,
+        max: 999999,
+        notInRangeMessage: 'Load number must be between {{ min }} and {{ max }}.'
+    )]
+    #[Groups(['load:read', 'load:create', 'load:update'])]
     #[ORM\Column]
     private ?int $loadNumber = null;
 
+    #[Assert\NotNull(message: 'Chemical amount is required.')]
+    #[Assert\Positive(message: 'Chemical amount must be greater than zero.')]
+    #[Assert\Range(
+        min: 0.1,
+        max: 1000.0,
+        notInRangeMessage: 'Chemical amount must be between {{ min }} and {{ max }} liters.'
+    )]
+    #[Groups(['load:read', 'load:create', 'load:update'])]
     #[ORM\Column]
     private ?float $chemicalAmount = null;
 
+    #[Assert\NotNull(message: 'Water amount is required.')]
+    #[Assert\Positive(message: 'Water amount must be greater than zero.')]
+    #[Assert\Range(
+        min: 0.1,
+        max: 5000.0,
+        notInRangeMessage: 'Water amount must be between {{ min }} and {{ max }} liters.'
+    )]
+    #[Groups(['load:read', 'load:create', 'load:update'])]
     #[ORM\Column]
     private ?float $waterAmount = null;
 
+    #[Assert\NotNull(message: 'Loader is required.')]
+    #[Groups(['load:read', 'load:create', 'load:update'])]
     #[ORM\ManyToOne(inversedBy: 'loads')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Loader $loader = null;
 
+    #[Assert\NotNull(message: 'Chemical is required.')]
+    #[Groups(['load:read', 'load:create', 'load:update'])]
     #[ORM\ManyToOne(inversedBy: 'loads')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Chemical $chemical = null;
 
+    #[Assert\NotNull(message: 'Mission is required.')]
+    #[Groups(['load:read', 'load:create', 'load:update'])]
     #[ORM\ManyToOne(inversedBy: 'loads')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Mission $mission = null;
 
+    #[Assert\NotBlank(message: 'Load status is required.')]
+    #[Assert\Choice(
+        choices: ['preparing', 'ready', 'loading', 'loaded', 'in_transit', 'spraying', 'completed', 'cancelled'],
+        message: 'Load status must be one of: preparing, ready, loading, loaded, in_transit, spraying, completed, or cancelled.'
+    )]
+    #[Groups(['load:read', 'load:create', 'load:update'])]
     #[ORM\Column(length: 255)]
     private ?string $status = null;
+
+    public function __construct()
+    {
+        $this->status = 'preparing';
+    }
 
     public function getId(): ?int
     {

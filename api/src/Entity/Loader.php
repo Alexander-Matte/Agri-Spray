@@ -3,15 +3,37 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\LoaderRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LoaderRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Post(validationContext: ['groups' => ['Default', 'loader:create']], security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT')"),
+        new Get(),
+        new Put(validationContext: ['groups' => ['Default', 'loader:update']], security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT')"),
+        new Patch(validationContext: ['groups' => ['Default', 'loader:update']], security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT')"),
+        new Delete(security: "is_granted('ROLE_MANAGER') or is_granted('ROLE_PILOT')"),
+    ],
+    normalizationContext: ['groups' => ['loader:read']],
+    denormalizationContext: ['groups' => ['loader:create', 'loader:update']],
+)]
+#[UniqueEntity('email', message: 'This email address is already registered for another loader.')]
 class Loader
 {
+    #[Groups(['loader:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -20,15 +42,50 @@ class Loader
     /**
      * @var Collection<int, Load>
      */
+    #[Groups(['loader:read'])]
     #[ORM\OneToMany(targetEntity: Load::class, mappedBy: 'loader')]
     private Collection $loads;
 
+    #[Assert\NotBlank(message: 'Loader name is required.')]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: 'Loader name must be at least {{ limit }} characters long.',
+        maxMessage: 'Loader name cannot be longer than {{ limit }} characters.'
+    )]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z\s\-\.\']+$/',
+        message: 'Loader name can only contain letters, spaces, hyphens, dots, and apostrophes.'
+    )]
+    #[Groups(['loader:read', 'loader:create', 'loader:update'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
+    #[Assert\NotBlank(message: 'Phone number is required.')]
+    #[Assert\Length(
+        min: 10,
+        max: 20,
+        minMessage: 'Phone number must be at least {{ limit }} characters long.',
+        maxMessage: 'Phone number cannot be longer than {{ limit }} characters.'
+    )]
+    #[Assert\Regex(
+        pattern: '/^[\+]?[1-9][\d]{0,15}$/',
+        message: 'Please enter a valid phone number. Only digits, plus sign at the beginning, and no spaces are allowed.'
+    )]
+    #[Groups(['loader:read', 'loader:create', 'loader:update'])]
     #[ORM\Column(length: 255)]
     private ?string $phoneNumber = null;
 
+    #[Assert\Email(message: 'Please enter a valid email address.')]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'Email address cannot be longer than {{ limit }} characters.'
+    )]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+        message: 'Please enter a valid email address format.'
+    )]
+    #[Groups(['loader:read', 'loader:create', 'loader:update'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $email = null;
 

@@ -3,29 +3,72 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\ChemicalRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ChemicalRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Post(validationContext: ['groups' => ['Default', 'chemical:create']], security: "is_granted('ROLE_MANAGER')"),
+        new Get(),
+        new Put(validationContext: ['groups' => ['Default', 'chemical:update']], security: "is_granted('ROLE_MANAGER')"),
+        new Patch(validationContext: ['groups' => ['Default', 'chemical:update']], security: "is_granted('ROLE_MANAGER')"),
+        new Delete(security: "is_granted('ROLE_MANAGER')"),
+    ],
+    normalizationContext: ['groups' => ['chemical:read']],
+    denormalizationContext: ['groups' => ['chemical:create', 'chemical:update']],
+)]
+#[UniqueEntity('name', message: 'A chemical with this name already exists.')]
 class Chemical
 {
+    #[Groups(['chemical:read'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(message: 'Chemical name is required.')]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: 'Chemical name must be at least {{ limit }} characters long.',
+        maxMessage: 'Chemical name cannot be longer than {{ limit }} characters.'
+    )]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z0-9\s\-\.\,\&\'\(\)\/]+$/',
+        message: 'Chemical name can only contain letters, numbers, spaces, hyphens, dots, commas, ampersands, apostrophes, parentheses, and forward slashes.'
+    )]
+    #[Groups(['chemical:read', 'chemical:create', 'chemical:update'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
+    #[Assert\NotNull(message: 'Application rate is required.')]
+    #[Assert\Positive(message: 'Application rate must be greater than zero.')]
+    #[Assert\Range(
+        min: 0.01,
+        max: 100.0,
+        notInRangeMessage: 'Application rate must be between {{ min }} and {{ max }} L/ha.'
+    )]
+    #[Groups(['chemical:read', 'chemical:create', 'chemical:update'])]
     #[ORM\Column]
     private ?float $applicationRate = null;
 
     /**
      * @var Collection<int, Load>
      */
+    #[Groups(['chemical:read'])]
     #[ORM\OneToMany(targetEntity: Load::class, mappedBy: 'chemical')]
     private Collection $loads;
 

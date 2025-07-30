@@ -7,7 +7,6 @@ FROM dunglas/frankenphp:1-php8.4 AS frankenphp_upstream
 # https://docs.docker.com/develop/develop-images/multistage-build/#stop-at-a-specific-build-stage
 # https://docs.docker.com/compose/compose-file/#target
 
-
 # Base FrankenPHP image
 FROM frankenphp_upstream AS frankenphp_base
 
@@ -24,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	gettext \
 	git \
 	wget \
+	curl \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
@@ -104,4 +104,6 @@ RUN set -eux; \
 	composer dump-autoload --classmap-authoritative --no-dev; \
 	composer dump-env prod; \
 	composer run-script --no-dev post-install-cmd; \
-	chmod +x bin/console; sync;
+	chmod +x bin/console; \
+	chown -R www-data:www-data var/; \
+	sync;
