@@ -10,9 +10,11 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Repository\LoadRepository;
+use App\Service\UnitConversionService;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\ApiProperty;
 
 #[ORM\Entity(repositoryClass: LoadRepository::class)]
 #[ApiResource(
@@ -42,10 +44,12 @@ class Load
         max: 999999,
         notInRangeMessage: 'Load number must be between {{ min }} and {{ max }}.'
     )]
+    #[ApiProperty(example: 1001)]
     #[Groups(['load:read', 'load:create', 'load:update'])]
     #[ORM\Column]
     private ?int $loadNumber = null;
 
+    // Chemical amount in liters (primary storage unit)
     #[Assert\NotNull(message: 'Chemical amount is required.')]
     #[Assert\Positive(message: 'Chemical amount must be greater than zero.')]
     #[Assert\Range(
@@ -53,10 +57,17 @@ class Load
         max: 1000.0,
         notInRangeMessage: 'Chemical amount must be between {{ min }} and {{ max }} liters.'
     )]
+    #[ApiProperty(example: 25.5, description: 'Chemical amount in liters (primary storage unit)')]
     #[Groups(['load:read', 'load:create', 'load:update'])]
     #[ORM\Column]
     private ?float $chemicalAmount = null;
 
+    // Chemical amount in gallons (for input/display)
+    #[ApiProperty(example: 6.7, description: 'Chemical amount in gallons (will be converted to liters for storage)')]
+    #[Groups(['load:create', 'load:update'])]
+    private ?float $chemicalAmountGal = null;
+
+    // Water amount in liters (primary storage unit)
     #[Assert\NotNull(message: 'Water amount is required.')]
     #[Assert\Positive(message: 'Water amount must be greater than zero.')]
     #[Assert\Range(
@@ -64,9 +75,15 @@ class Load
         max: 5000.0,
         notInRangeMessage: 'Water amount must be between {{ min }} and {{ max }} liters.'
     )]
+    #[ApiProperty(example: 500.0, description: 'Water amount in liters (primary storage unit)')]
     #[Groups(['load:read', 'load:create', 'load:update'])]
     #[ORM\Column]
     private ?float $waterAmount = null;
+
+    // Water amount in gallons (for input/display)
+    #[ApiProperty(example: 132.1, description: 'Water amount in gallons (will be converted to liters for storage)')]
+    #[Groups(['load:create', 'load:update'])]
+    private ?float $waterAmountGal = null;
 
     #[Assert\NotNull(message: 'Loader is required.')]
     #[Groups(['load:read', 'load:create', 'load:update'])]
@@ -91,6 +108,7 @@ class Load
         choices: ['preparing', 'ready', 'loading', 'loaded', 'in_transit', 'spraying', 'completed', 'cancelled'],
         message: 'Load status must be one of: preparing, ready, loading, loaded, in_transit, spraying, completed, or cancelled.'
     )]
+    #[ApiProperty(example: 'ready')]
     #[Groups(['load:read', 'load:create', 'load:update'])]
     #[ORM\Column(length: 255)]
     private ?string $status = null;
@@ -129,6 +147,26 @@ class Load
         return $this;
     }
 
+    public function getChemicalAmountGal(): ?float
+    {
+        if ($this->chemicalAmount === null) {
+            return null;
+        }
+        
+        $unitConverter = new UnitConversionService();
+        return $unitConverter->litersToGallons($this->chemicalAmount);
+    }
+
+    public function setChemicalAmountGal(?float $chemicalAmountGal): static
+    {
+        if ($chemicalAmountGal !== null) {
+            $unitConverter = new UnitConversionService();
+            $this->chemicalAmount = $unitConverter->gallonsToLiters($chemicalAmountGal);
+        }
+
+        return $this;
+    }
+
     public function getWaterAmount(): ?float
     {
         return $this->waterAmount;
@@ -137,6 +175,26 @@ class Load
     public function setWaterAmount(float $waterAmount): static
     {
         $this->waterAmount = $waterAmount;
+
+        return $this;
+    }
+
+    public function getWaterAmountGal(): ?float
+    {
+        if ($this->waterAmount === null) {
+            return null;
+        }
+        
+        $unitConverter = new UnitConversionService();
+        return $unitConverter->litersToGallons($this->waterAmount);
+    }
+
+    public function setWaterAmountGal(?float $waterAmountGal): static
+    {
+        if ($waterAmountGal !== null) {
+            $unitConverter = new UnitConversionService();
+            $this->waterAmount = $unitConverter->gallonsToLiters($waterAmountGal);
+        }
 
         return $this;
     }

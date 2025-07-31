@@ -15,6 +15,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\ApiProperty;
 
 #[ORM\Entity(repositoryClass: MissionRepository::class)]
 #[ApiResource(
@@ -55,6 +56,7 @@ class Mission
         pattern: '/^[a-zA-Z0-9\s\-\.\,\:\/\(\)]+$/',
         message: 'Mission title can only contain letters, numbers, spaces, hyphens, dots, commas, colons, slashes, and parentheses.'
     )]
+    #[ApiProperty(example: 'Corn Field Herbicide Application')]
     #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $title = null;
@@ -64,6 +66,7 @@ class Mission
         choices: ['herbicide', 'fungicide', 'insecticide', 'fertilizer', 'seed', 'other'],
         message: 'Mission type must be one of: herbicide, fungicide, insecticide, fertilizer, seed, or other.'
     )]
+    #[ApiProperty(example: 'herbicide')]
     #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $type = null;
@@ -75,6 +78,7 @@ class Mission
         max: 10000.0,
         notInRangeMessage: 'Total field size must be between {{ min }} and {{ max }} hectares.'
     )]
+    #[ApiProperty(example: 150.5)]
     #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column]
     private ?float $fieldSizeTotal = null;
@@ -90,6 +94,7 @@ class Mission
         "this.getFieldSizeSprayable() <= this.getFieldSizeTotal()",
         message: 'Sprayable field size cannot be larger than total field size.'
     )]
+    #[ApiProperty(example: 145.0)]
     #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column]
     private ?float $fieldSizeSprayable = null;
@@ -105,6 +110,7 @@ class Mission
         pattern: '/^[a-zA-Z0-9\s\-\.\,\:\/\(\)]+$/',
         message: 'Location can only contain letters, numbers, spaces, hyphens, dots, commas, colons, slashes, and parentheses.'
     )]
+    #[ApiProperty(example: 'Farm Road 123, GPS: 40.7128° N, 74.0060° W')]
     #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $location = null;
@@ -121,6 +127,7 @@ class Mission
         'today',
         message: 'Scheduled date must be in the future.'
     )]
+    #[ApiProperty(example: '2024-06-15T08:00:00+00:00')]
     #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $scheduledAt = null;
@@ -130,6 +137,7 @@ class Mission
         choices: ['planned', 'scheduled', 'in_progress', 'completed', 'cancelled', 'on_hold'],
         message: 'Mission status must be one of: planned, scheduled, in_progress, completed, cancelled, or on_hold.'
     )]
+    #[ApiProperty(example: 'scheduled')]
     #[Groups(['mission:read', 'mission:create', 'mission:update'])]
     #[ORM\Column(length: 255)]
     private ?string $status = null;

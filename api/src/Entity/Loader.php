@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\ApiProperty;
 
 #[ORM\Entity(repositoryClass: LoaderRepository::class)]
 #[ApiResource(
@@ -57,6 +58,7 @@ class Loader
         pattern: '/^[a-zA-Z\s\-\.\']+$/',
         message: 'Loader name can only contain letters, spaces, hyphens, dots, and apostrophes.'
     )]
+    #[ApiProperty(example: 'Mike Johnson')]
     #[Groups(['loader:read', 'loader:create', 'loader:update'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
@@ -72,6 +74,7 @@ class Loader
         pattern: '/^[\+]?[1-9][\d]{0,15}$/',
         message: 'Please enter a valid phone number. Only digits, plus sign at the beginning, and no spaces are allowed.'
     )]
+    #[ApiProperty(example: '+1234567890')]
     #[Groups(['loader:read', 'loader:create', 'loader:update'])]
     #[ORM\Column(length: 255)]
     private ?string $phoneNumber = null;
@@ -85,6 +88,7 @@ class Loader
         pattern: '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
         message: 'Please enter a valid email address format.'
     )]
+    #[ApiProperty(example: 'mike.johnson@agri-spray.com')]
     #[Groups(['loader:read', 'loader:create', 'loader:update'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $email = null;

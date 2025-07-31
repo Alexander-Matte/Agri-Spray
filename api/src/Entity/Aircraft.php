@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\ApiProperty;
 
 #[ORM\Entity(repositoryClass: AircraftRepository::class)]
 #[ApiResource(
@@ -50,6 +51,7 @@ class Aircraft
         pattern: '/^[A-Z0-9\-]+$/',
         message: 'Registration number can only contain uppercase letters, numbers, and hyphens.'
     )]
+    #[ApiProperty(example: 'N12345')]
     #[Groups(['aircraft:read', 'aircraft:create', 'aircraft:update'])]
     #[ORM\Column(length: 255)]
     private ?string $registrationNumber = null;
@@ -65,6 +67,7 @@ class Aircraft
         pattern: '/^[a-zA-Z0-9\s\-\.]+$/',
         message: 'Aircraft model can only contain letters, numbers, spaces, hyphens, and dots.'
     )]
+    #[ApiProperty(example: 'Air Tractor AT-802')]
     #[Groups(['aircraft:read', 'aircraft:create', 'aircraft:update'])]
     #[ORM\Column(length: 255)]
     private ?string $model = null;
@@ -76,6 +79,7 @@ class Aircraft
         max: 5000,
         notInRangeMessage: 'Hopper capacity must be between {{ min }} and {{ max }} gallons.'
     )]
+    #[ApiProperty(example: 800, description: 'Hopper capacity in gallons (will be converted to liters for storage)')]
     #[Groups(['aircraft:read', 'aircraft:create', 'aircraft:update'])]
     #[ORM\Column]
     private ?int $hopperCapacityGal = null;
@@ -91,6 +95,7 @@ class Aircraft
         "this.getHopperCapacityLt() >= this.getHopperCapacityGal() * 3.785",
         message: 'Hopper capacity in liters must be at least 3.785 times the capacity in gallons.'
     )]
+    #[ApiProperty(example: 3028, description: 'Hopper capacity in liters (primary storage unit)')]
     #[Groups(['aircraft:read', 'aircraft:create', 'aircraft:update'])]
     #[ORM\Column]
     private ?int $hopperCapacityLt = null;

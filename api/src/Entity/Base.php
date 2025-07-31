@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\ApiProperty;
 
 #[ORM\Entity(repositoryClass: BaseRepository::class)]
 #[ApiResource(
@@ -50,6 +51,7 @@ class Base
         pattern: '/^[a-zA-Z0-9\s\-\.\,\&\'\(\)]+$/',
         message: 'Base name can only contain letters, numbers, spaces, hyphens, dots, commas, ampersands, apostrophes, and parentheses.'
     )]
+    #[ApiProperty(example: 'North Regional Base')]
     #[Groups(['base:read', 'base:create', 'base:update'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
@@ -65,6 +67,7 @@ class Base
         pattern: '/^[a-zA-Z0-9\s\-\.\,\:\/\(\)]+$/',
         message: 'Base location can only contain letters, numbers, spaces, hyphens, dots, commas, colons, slashes, and parentheses.'
     )]
+    #[ApiProperty(example: '123 Airport Road, GPS: 40.7128° N, 74.0060° W')]
     #[Groups(['base:read', 'base:create', 'base:update'])]
     #[ORM\Column(length: 255)]
     private ?string $location = null;

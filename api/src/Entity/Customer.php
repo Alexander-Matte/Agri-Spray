@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\ApiProperty;
 
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
 #[ApiResource(
@@ -50,6 +51,7 @@ class Customer
         pattern: '/^[a-zA-Z0-9\s\-\.\,\&\'\(\)]+$/',
         message: 'Customer name can only contain letters, numbers, spaces, hyphens, dots, commas, ampersands, apostrophes, and parentheses.'
     )]
+    #[ApiProperty(example: 'Smith Family Farm')]
     #[Groups(['customer:read', 'customer:create', 'customer:update'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
@@ -65,6 +67,7 @@ class Customer
         pattern: '/^[\+]?[1-9][\d]{0,15}$/',
         message: 'Please enter a valid phone number. Only digits, plus sign at the beginning, and no spaces are allowed.'
     )]
+    #[ApiProperty(example: '+1234567890')]
     #[Groups(['customer:read', 'customer:create', 'customer:update'])]
     #[ORM\Column(length: 255)]
     private ?string $phoneNumber = null;
@@ -78,6 +81,7 @@ class Customer
         pattern: '/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
         message: 'Please enter a valid email address format.'
     )]
+    #[ApiProperty(example: 'contact@smithfarm.com')]
     #[Groups(['customer:read', 'customer:create', 'customer:update'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $email = null;

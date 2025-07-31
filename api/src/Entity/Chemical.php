@@ -16,6 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\ApiProperty;
 
 #[ORM\Entity(repositoryClass: ChemicalRepository::class)]
 #[ApiResource(
@@ -50,6 +51,7 @@ class Chemical
         pattern: '/^[a-zA-Z0-9\s\-\.\,\&\'\(\)\/]+$/',
         message: 'Chemical name can only contain letters, numbers, spaces, hyphens, dots, commas, ampersands, apostrophes, parentheses, and forward slashes.'
     )]
+    #[ApiProperty(example: 'Roundup Ready (Glyphosate 41%)')]
     #[Groups(['chemical:read', 'chemical:create', 'chemical:update'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
@@ -61,6 +63,7 @@ class Chemical
         max: 100.0,
         notInRangeMessage: 'Application rate must be between {{ min }} and {{ max }} L/ha.'
     )]
+    #[ApiProperty(example: 2.5)]
     #[Groups(['chemical:read', 'chemical:create', 'chemical:update'])]
     #[ORM\Column]
     private ?float $applicationRate = null;
