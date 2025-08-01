@@ -149,9 +149,13 @@
 
 <script setup>
 import { useUserStore } from '../../stores/user'
+  const userStore = useUserStore()
 
+  onBeforeMount(async () => {
+  userStore.hydrate();
+  console.log('User store hydrated:', userStore);
+});
 
-const store = useUserStore()
 
 
 // Form data - ensure it's properly initialized for SSR
@@ -173,12 +177,12 @@ const handleSubmit = async () => {
     console.error('User store not available')
     return
   }
-  
+  console.log(form.value.email)
   try {
     isLoading.value = true
     await userStore.login(form.value.email, form.value.password)
     // Redirect to dashboard after successful login
-    await navigateTo(userStore.getDashboardPath())
+    //await navigateTo(userStore.getDashboardPath())
   } catch (error) {
     console.error('Login failed:', error)
     // Handle login error

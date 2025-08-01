@@ -27,34 +27,59 @@ export const useUserStore = defineStore('user', () => {
 
   // Actions
   async function login(email: string, password: string) {
+    console.log(email, password)
     try {
-      const response = await $fetch('/api/login', {
+      const response = await $fetch('/api/auth', {
         method: 'POST',
-        body: { email, password }
+        body: { email, password },
       })
 
-      if (response && response.user && response.token) {
-        user.value = response.user
-        token.value = response.token
-        isAuthenticated.value = true
-
-        // Store in localStorage if on client
-        if (process.client) {
-          try {
-            localStorage.setItem('auth_token', response.token)
-            localStorage.setItem('user_data', JSON.stringify(response.user))
-          } catch (error) {
-            console.error('Failed to store in localStorage:', error)
-          }
-        }
-
-        return response
-      } else {
-        throw new Error('Invalid response format')
+      // Check for API-level error
+      if ((response as any)?.error) {
+        throw new Error((response as any).message || 'Authentication failed')
       }
-    } catch (error) {
+
+      // Valid success response
+      const { token: receivedToken, user: receivedUser } = response as {
+        token: string
+        user: User
+      }
+
+      if (!receivedToken || !receivedUser) {
+        throw new Error('Invalid response format from auth endpoint')
+      }
+
+      user.value = receivedUser
+      token.value = receivedToken
+      isAuthenticated.value = true
+
+      // Store in localStorage if on client
+      if (import.meta.client) {
+        try {
+          localStorage.setItem('auth_token', receivedToken)
+          localStorage.setItem('user_data', JSON.stringify(receivedUser))
+        } catch (error) {
+          console.error('Failed to store in localStorage:', error)
+        }
+      }
+
+      return response
+    } catch (error: any) {
       console.error('Login failed:', error)
-      throw error
+      throw new Error(error?.message || 'Login failed')
+    }
+  }
+
+
+  function hydrate() {
+    if (import.meta.client) {
+      const storedUser = localStorage.getItem('user_data')
+      const storedToken = localStorage.getItem('auth_token')
+      if (storedUser && storedToken) {
+        user.value = JSON.parse(storedUser)
+        token.value = storedToken
+        isAuthenticated.value = true
+      }
     }
   }
 
@@ -70,7 +95,7 @@ export const useUserStore = defineStore('user', () => {
     token.value = null
     isAuthenticated.value = false
 
-    if (process.client) {
+    if (import.meta.client) {
       try {
         localStorage.removeItem('auth_token')
         localStorage.removeItem('user_data')
@@ -89,6 +114,7 @@ export const useUserStore = defineStore('user', () => {
     isLoader,
     login,
     logout,
-    getDashboardPath
+    getDashboardPath,
+    hydrate
   }
 })
