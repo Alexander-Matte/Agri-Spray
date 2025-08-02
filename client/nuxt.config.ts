@@ -1,10 +1,18 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  devtools: { 
+    enabled: true,
+    timeline: {
+      enabled: true
+    }
+  },
 
   typescript: {
-    typeCheck: true
+    typeCheck: true,
+    tsConfig: {
+      include: ['types/**/*']
+    }
   },
 
   // Runtime config
@@ -41,8 +49,18 @@ export default defineNuxtConfig({
     '@nuxt/scripts',
     '@nuxt/test-utils',
     '@nuxt/ui',
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    'pinia-plugin-persistedstate/nuxt',
   ],
+
+
+
+  piniaPluginPersistedstate: {
+    storage: 'cookies',
+    cookieOptions: {
+      sameSite: 'lax',
+    },
+  },
 
   css: ['~/assets/css/main.css'],
 

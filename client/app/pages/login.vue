@@ -71,6 +71,16 @@
               </div>
             </div>
 
+            <!-- Error Display -->
+            <div v-if="currentError" class="bg-red-50 border border-red-200 rounded-md p-3">
+              <div class="flex">
+                <UIcon name="i-heroicons-exclamation-triangle" class="h-5 w-5 text-red-400" />
+                <div class="ml-3">
+                  <p class="text-sm text-red-800">{{ currentError.message }}</p>
+                </div>
+              </div>
+            </div>
+
             <!-- Submit Button -->
             <UButton
               type="submit"
@@ -93,39 +103,42 @@
           <div class="space-y-3">
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
               <div>
-                <p class="text-sm font-medium text-gray-900">Manager</p>
-                <p class="text-xs text-gray-500">manager@agri-spray.com</p>
+                <p class="text-sm font-medium text-gray-900">Demo Manager</p>
+                <p class="text-xs text-gray-500">demo-manager@agri-spray.com</p>
               </div>
               <UButton
                 size="xs"
                 variant="outline"
                 color="primary"
+                @click="useDemoAccount('demo-manager@agri-spray.com', 'demo123')"
               >
                 Use
               </UButton>
             </div>
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
               <div>
-                <p class="text-sm font-medium text-gray-900">Pilot</p>
-                <p class="text-xs text-gray-500">pilot@agri-spray.com</p>
+                <p class="text-sm font-medium text-gray-900">Demo Pilot</p>
+                <p class="text-xs text-gray-500">demo-pilot@agri-spray.com</p>
               </div>
               <UButton
                 size="xs"
                 variant="outline"
                 color="primary"
+                @click="useDemoAccount('demo-pilot@agri-spray.com', 'demo123')"
               >
                 Use
               </UButton>
             </div>
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
               <div>
-                <p class="text-sm font-medium text-gray-900">Loader</p>
-                <p class="text-xs text-gray-500">loader@agri-spray.com</p>
+                <p class="text-sm font-medium text-gray-900">Demo Loader</p>
+                <p class="text-xs text-gray-500">demo-loader@agri-spray.com</p>
               </div>
               <UButton
                 size="xs"
                 variant="outline"
                 color="primary"
+                @click="useDemoAccount('demo-loader@agri-spray.com', 'demo123')"
               >
                 Use
               </UButton>
@@ -148,46 +161,47 @@
 </template>
 
 <script setup>
-import { useUserStore } from '../../stores/user'
-  const userStore = useUserStore()
+import { useAuthStore } from '../../stores/auth'
 
-  onBeforeMount(async () => {
-  userStore.hydrate();
-  console.log('User store hydrated:', userStore);
-});
+const authStore = useAuthStore()
+const { currentError, clearError } = useApiError()
 
 
-
-// Form data - ensure it's properly initialized for SSR
+// Form data
 const form = ref({
   email: '',
   password: '',
   rememberMe: false
 })
 
-// Form validation errors
-const errors = ref({})
-
 // Loading state
 const isLoading = ref(false)
 
 // Handle form submission
 const handleSubmit = async () => {
-  if (!userStore) {
-    console.error('User store not available')
+  if (!authStore) {
+    console.error('Auth store not available')
     return
   }
-  console.log(form.value.email)
+
+  clearError() // Clear any previous errors
+  isLoading.value = true
+
   try {
-    isLoading.value = true
-    await userStore.login(form.value.email, form.value.password)
+    await authStore.login(form.value.email, form.value.password)
     // Redirect to dashboard after successful login
-    //await navigateTo(userStore.getDashboardPath())
+    await navigateTo(authStore.getDashboardPath())
   } catch (error) {
     console.error('Login failed:', error)
-    // Handle login error
+    // Error handling is now automatic via the composables
   } finally {
     isLoading.value = false
   }
+}
+
+// Demo account handlers
+const useDemoAccount = (email, password) => {
+  form.value.email = email
+  form.value.password = password
 }
 </script> 

@@ -5,13 +5,15 @@
 </template>
 
 <script setup lang="ts">
-// import { useUserStore } from '../stores/user'
-//   const userStore = useUserStore()
+import { useAuthStore } from '../stores/auth'
 
-// onBeforeMount(async () => {
-//   await userStore.hydrate()
-//   console.log('User store hydrated:', userStore)
-// })
+const authStore = useAuthStore()
+
+onMounted(() => {
+  // Initialize authentication from stored tokens
+  authStore.initializeAuth()
+  console.log('Auth store initialized:', authStore)
+})
 </script>
 
 <style scoped>
