@@ -19,6 +19,9 @@
 {$SERVER_NAME:localhost} {
 	log {
 		{$CADDY_SERVER_LOG_OPTIONS}
+		# Enhanced logging for debugging
+		format console
+		level DEBUG
 		# Redact the authorization query parameter that can be set by Mercure
 		format filter {
 			request>uri query {
@@ -29,6 +32,11 @@
 
 	root /app/public
 	encode zstd br gzip
+	
+	# Add request logging for debugging
+	header /auth* X-Debug-Path "{path}"
+	header /auth* X-Debug-Host "{host}"
+	header /auth* X-Debug-Method "{method}"
 
 	mercure {
 		# Publisher JWT key
@@ -54,6 +62,15 @@
 		not path /.well-known/mercure*
 		not file {path}
 	}
+	
+	# Add debug logging for route matching
+	@debugRoute {
+		path /auth*
+	}
+	
+	# Log auth requests specifically (commented out to avoid interference)
+	# respond @debugRoute "Auth route accessed: {path}" 200
+	
 	rewrite @phpRoute index.php
 
 	@frontController path index.php

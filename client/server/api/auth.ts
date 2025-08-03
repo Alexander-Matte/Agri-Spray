@@ -18,6 +18,10 @@ export default defineEventHandler(async (event) => {
     const response = await $fetch(`${apiBaseUrl}/auth`, {
       method: 'POST',
       body,
+      headers: {
+        'Host': 'localhost',
+        'Content-Type': 'application/json'
+      }
     })
 
     console.log('✅ Response from auth endpoint:', response)
