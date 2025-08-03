@@ -142,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { useMissions } from '~/app/composables/useMissions'
+
 
 // Mission data
 const { getMissions, getDashboardStats } = useMissions()

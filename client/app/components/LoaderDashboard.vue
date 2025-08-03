@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { useApi } from '~/app/composables/useApi'
+
 
 // API
 const { get } = useApi()

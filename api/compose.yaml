@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     environment:
       # SERVER_NAME and MERCURE:PUBLIC_URL overwritten for local dev due to https
-      SERVER_NAME: http://localhost
+      SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET}
       DATABASE_URL: ${DATABASE_URL}

@@ -1,7 +1,11 @@
+import { useJwtDecode } from '../../app/composables/useJwtDecode'
+
 interface JwtPayload {
   id: number
   email: string
   roles: string[]
+  iat: number
+  exp: number
 }
 
 export default defineEventHandler(async (event) => {
@@ -13,9 +17,7 @@ export default defineEventHandler(async (event) => {
       throw new Error('API_BASE_URL is not defined')
     }
 
-    console.log(body)
-
-    const response = await $fetch(`${apiBaseUrl}/auth`, {
+    const response = await $fetch<{ token: string, refresh_token: string }>(`${apiBaseUrl}/auth`, {
       method: 'POST',
       body,
       headers: {
@@ -24,10 +26,21 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    console.log('✅ Response from auth endpoint:', response)
+    const decodedToken = useJwtDecode(response.token) as JwtPayload
+    const refreshToken = response.refresh_token
 
-    // Return the raw response so you can see it in the frontend
-    return response
+    return {
+      user: {
+        id: decodedToken.id,
+        email: decodedToken.email,
+        roles: decodedToken.roles,
+        iat: decodedToken.iat,
+        exp: decodedToken.exp
+      },
+      token: response.token,
+      refreshToken: refreshToken
+    }
+
   } catch (err: any) {
     console.error('❌ Error in /api/auth handler:', err)
 

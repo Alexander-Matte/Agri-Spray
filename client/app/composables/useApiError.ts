@@ -1,5 +1,3 @@
-import { useToast } from '@nuxt/ui'
-
 export interface ErrorOptions {
   showNotification?: boolean
   logToConsole?: boolean

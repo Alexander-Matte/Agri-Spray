@@ -94,12 +94,13 @@
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
               <div>
                 <p class="text-sm font-medium text-gray-900">Manager</p>
-                <p class="text-xs text-gray-500">manager@agri-spray.com</p>
+                <p class="text-xs text-gray-500">demo-manager@agri-spray.com</p>
               </div>
               <UButton
                 size="xs"
                 variant="outline"
                 color="primary"
+                @click="fillDemoCredentials('demo-manager@agri-spray.com', 'demo123')"
               >
                 Use
               </UButton>
@@ -107,12 +108,13 @@
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
               <div>
                 <p class="text-sm font-medium text-gray-900">Pilot</p>
-                <p class="text-xs text-gray-500">pilot@agri-spray.com</p>
+                <p class="text-xs text-gray-500">demo-pilot@agri-spray.com</p>
               </div>
               <UButton
                 size="xs"
                 variant="outline"
                 color="primary"
+                @click="fillDemoCredentials('demo-pilot@agri-spray.com', 'demo123')"
               >
                 Use
               </UButton>
@@ -120,12 +122,13 @@
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
               <div>
                 <p class="text-sm font-medium text-gray-900">Loader</p>
-                <p class="text-xs text-gray-500">loader@agri-spray.com</p>
+                <p class="text-xs text-gray-500">demo-loader@agri-spray.com</p>
               </div>
               <UButton
                 size="xs"
                 variant="outline"
                 color="primary"
+                @click="fillDemoCredentials('demo-loader@agri-spray.com', 'demo123')"
               >
                 Use
               </UButton>
@@ -148,15 +151,8 @@
 </template>
 
 <script setup>
-import { useUserStore } from '../../stores/user'
-  const userStore = useUserStore()
-
-  onBeforeMount(async () => {
-  userStore.hydrate();
-  console.log('User store hydrated:', userStore);
-});
-
-
+import { useAuthStore } from '../../stores/auth'
+const authStore = useAuthStore()
 
 // Form data - ensure it's properly initialized for SSR
 const form = ref({
@@ -169,25 +165,33 @@ const form = ref({
 const errors = ref({})
 
 // Loading state
-const isLoading = ref(false)
+const isLoading = computed(() => authStore.isLoading)
 
 // Handle form submission
 const handleSubmit = async () => {
-  if (!userStore) {
-    console.error('User store not available')
+  if (!authStore) {
+    console.error('Auth store not available')
     return
   }
-  console.log(form.value.email)
   try {
-    isLoading.value = true
-    await userStore.login(form.value.email, form.value.password)
-    // Redirect to dashboard after successful login
-    //await navigateTo(userStore.getDashboardPath())
+    const result = await authStore.login(form.value.email, form.value.password)
+    if (result.success) {
+      // Redirect to dashboard after successful login
+      await navigateTo('/dashboard')
+    } else {
+      // Handle login error
+      console.error('Login failed:', result.error)
+    }
   } catch (error) {
     console.error('Login failed:', error)
     // Handle login error
-  } finally {
-    isLoading.value = false
   }
+}
+
+// Function to fill form with demo account credentials
+const fillDemoCredentials = (email, password) => {
+  form.value.email = email
+  form.value.password = password
+  form.value.rememberMe = false // Clear remember me for demo
 }
 </script> 

@@ -5,6 +5,8 @@ export interface User {
   id: number
   email: string
   roles: string[]
+  iat: number
+  exp: number
   profileInformation?: any
   lastLogin?: string
   isActive: boolean
@@ -15,6 +17,8 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isAuthenticated = ref(false)  
   const isLoading = ref(false)
+  const token = ref<string | null>(null)
+  const refreshToken = ref<string | null>(null)
 
   // Getters
   const hasRole = (role: string) => {
@@ -41,14 +45,13 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     
     try {
-      const response = await $fetch<{ user: User }>('/api/auth', {
-        method: 'POST',
-        body: { email, password },
-        headers: { 'Content-Type': 'application/json' }
-      })
+      const { post } = useApi()
+      const response = await post<{ user: User; token: string; refreshToken: string }>('/api/auth', { email, password })
       
       if (response && response.user) {
         user.value = response.user
+        token.value = response.token
+        refreshToken.value = response.refreshToken
         isAuthenticated.value = true
         return { success: true }
       } else {
@@ -67,8 +70,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = async () => {
     try {
-      // JWT bundle handles logout automatically via secure cookies
-      // No need to call a logout endpoint
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
@@ -78,10 +79,29 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Check if token is expired
+  const isTokenExpired = () => {
+    if (!user.value?.exp) return true
+    const currentTime = Math.floor(Date.now() / 1000)
+    return currentTime >= user.value.exp
+  }
+
   const refreshAuth = async () => {
     try {
-      // JWT bundle handles token refresh automatically via secure cookies
-      // If we have a user in state, assume they're still authenticated
+      // Check if token is expired
+      if (isTokenExpired()) {
+        if (refreshToken.value) {
+          // TODO: Implement refresh token call to backend
+          // For now, just clear auth if expired
+          clearAuth()
+          return false
+        } else {
+          clearAuth()
+          return false
+        }
+      }
+      
+      // Token is still valid
       if (user.value) {
         isAuthenticated.value = true
         return true
@@ -89,8 +109,7 @@ export const useAuthStore = defineStore('auth', () => {
       return false
     } catch (error) {
       console.error('Auth refresh failed:', error)
-      user.value = null
-      isAuthenticated.value = false
+      clearAuth()
       return false
     }
   }
@@ -109,6 +128,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const clearAuth = () => {
     user.value = null
+    token.value = null
+    refreshToken.value = null
     isAuthenticated.value = false
   }
 
@@ -117,12 +138,15 @@ export const useAuthStore = defineStore('auth', () => {
     user: readonly(user),
     isAuthenticated: readonly(isAuthenticated),
     isLoading: readonly(isLoading),
+    token: readonly(token),
+    refreshToken: readonly(refreshToken),
     
     // Getters
     hasRole,
     isManager,
     isPilot,
     isLoader,
+    isTokenExpired,
     
     // Actions
     login,
