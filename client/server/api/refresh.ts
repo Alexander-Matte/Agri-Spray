@@ -1,5 +1,5 @@
+import { getCookie, setCookie } from 'h3'
 import { useJwtDecode } from '../../app/composables/useJwtDecode'
-import { setCookie } from 'h3'
 
 interface JwtPayload {
   id: number
@@ -11,18 +11,31 @@ interface JwtPayload {
 
 export default defineEventHandler(async (event) => {
   try {
-    const body = await readBody(event)
     const apiBaseUrl = process.env.API_BASE_URL?.replace(/\/+$/, '')
 
     if (!apiBaseUrl) {
       throw new Error('API_BASE_URL is not defined')
     }
 
+    // Get refresh token from cookies
+    const refreshToken = getCookie(event, 'refresh_token')
+    
+    if (!refreshToken) {
+      setResponseStatus(event, 401)
+      return {
+        error: true,
+        message: 'No refresh token available'
+      }
+    }
+
+    // Call backend refresh endpoint
     const response = await $fetch<{ token: string; refresh_token: string }>(
-      `${apiBaseUrl}/auth`,
+      `${apiBaseUrl}/token/refresh`,
       {
         method: 'POST',
-        body,
+        body: {
+          refresh_token: refreshToken
+        },
         headers: {
           Host: 'localhost',
           'Content-Type': 'application/json',
@@ -32,7 +45,7 @@ export default defineEventHandler(async (event) => {
 
     const decodedToken = useJwtDecode(response.token) as JwtPayload
 
-    // Set cookies on the response
+    // Set new cookies
     setCookie(event, 'token', response.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -57,12 +70,11 @@ export default defineEventHandler(async (event) => {
         iat: decodedToken.iat,
         exp: decodedToken.exp,
       },
-      // Optionally return the tokens if you want to use them client-side too
       token: response.token,
       refreshToken: response.refresh_token,
     }
   } catch (err: any) {
-    console.error('❌ Error in /api/auth handler:', err)
+    console.error('❌ Token refresh failed:', err)
 
     setResponseStatus(event, err?.response?.status || 500)
 
@@ -71,7 +83,7 @@ export default defineEventHandler(async (event) => {
       message:
         err?.response?._data?.message ||
         err.message ||
-        'Unknown error occurred',
+        'Token refresh failed',
     }
   }
-})
+}) 

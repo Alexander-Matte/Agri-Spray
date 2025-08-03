@@ -17,8 +17,6 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isAuthenticated = ref(false)  
   const isLoading = ref(false)
-  const token = ref<string | null>(null)
-  const refreshToken = ref<string | null>(null)
 
   // Getters
   const hasRole = (role: string) => {
@@ -50,8 +48,6 @@ export const useAuthStore = defineStore('auth', () => {
       
       if (response && response.user) {
         user.value = response.user
-        token.value = response.token
-        refreshToken.value = response.refreshToken
         isAuthenticated.value = true
         return { success: true }
       } else {
@@ -70,12 +66,21 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = async () => {
     try {
+      // Call logout endpoint to invalidate tokens on backend
+      const { post } = useApi()
+      await post('/api/logout', {}, {
+        errorOptions: {
+          showNotification: false,
+          logToConsole: false
+        }
+      })
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
-      user.value = null
-      isAuthenticated.value = false
-      navigateTo('/login')
+      // Clear local state
+      clearAuth()
+      // Navigate to login
+      await navigateTo('/login')
     }
   }
 
@@ -90,11 +95,15 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       // Check if token is expired
       if (isTokenExpired()) {
-        if (refreshToken.value) {
-          // TODO: Implement refresh token call to backend
-          // For now, just clear auth if expired
-          clearAuth()
-          return false
+        // TODO: Implement refresh token call to backend
+        // This will call your refresh endpoint with the refresh token from cookies
+        const { post } = useApi()
+        const response = await post<{ user: User; token: string; refreshToken: string }>('/api/refresh', {})
+        
+        if (response && response.user) {
+          user.value = response.user
+          isAuthenticated.value = true
+          return true
         } else {
           clearAuth()
           return false
@@ -128,8 +137,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const clearAuth = () => {
     user.value = null
-    token.value = null
-    refreshToken.value = null
     isAuthenticated.value = false
   }
 
@@ -138,8 +145,6 @@ export const useAuthStore = defineStore('auth', () => {
     user: readonly(user),
     isAuthenticated: readonly(isAuthenticated),
     isLoading: readonly(isLoading),
-    token: readonly(token),
-    refreshToken: readonly(refreshToken),
     
     // Getters
     hasRole,
@@ -156,4 +161,6 @@ export const useAuthStore = defineStore('auth', () => {
     setUser,
     clearAuth
   }
+}, {
+  persist: true
 }) 
