@@ -45,6 +45,11 @@ export default defineNuxtConfig({
     'pinia-plugin-persistedstate/nuxt'
   ],
 
+  pinia: {
+    autoImports: ['defineStore', 'storeToRefs']
+  },
+
+
   css: ['~/assets/css/main.css'],
 
   // Nitro configuration for Docker

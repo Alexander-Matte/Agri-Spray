@@ -5,13 +5,17 @@
 </template>
 
 <script setup lang="ts">
-// import { useUserStore } from '../stores/user'
-//   const userStore = useUserStore()
+import { useAuthStore } from '../stores/auth'
+import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
-// onBeforeMount(async () => {
-//   await userStore.hydrate()
-//   console.log('User store hydrated:', userStore)
-// })
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
+
+onMounted(() => {
+  const authStore = useAuthStore()
+  authStore.initializeAuth()
+})
 </script>
 
 <style scoped>
