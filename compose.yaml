@@ -75,8 +75,8 @@ services:
       NODE_ENV: development
       NUXT_HOST: 0.0.0.0
       NUXT_PORT: 3000
-      # API communication through nginx reverse proxy
-      API_BASE_URL: "${CLIENT_API_BASE_URL:-http://localhost/api}"
+      # API communication directly to API container (server-side)
+      API_BASE_URL: "${CLIENT_API_BASE_URL:-http://api}"
     volumes:
       - ./client:/app:rw
       - /app/node_modules

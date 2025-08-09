@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const response = await $fetch<{ token: string; refresh_token: string }>(
-      `${apiBaseUrl}/auth`,
+      `${apiBaseUrl}/api/auth`,
       {
         method: 'POST',
         body,
@@ -29,6 +29,10 @@ export default defineEventHandler(async (event) => {
         },
       }
     )
+
+    if (!response.token) {
+      throw new Error('No token received from API')
+    }
 
     const decodedToken = useJwtDecode(response.token) as JwtPayload
 

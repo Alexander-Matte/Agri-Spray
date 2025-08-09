@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
 
     // Call backend refresh endpoint
     const response = await $fetch<{ token: string; refresh_token: string }>(
-      `${apiBaseUrl}/token/refresh`,
+      `${apiBaseUrl}/api/token/refresh`,
       {
         method: 'POST',
         body: {
