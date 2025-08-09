@@ -1,0 +1,216 @@
+services:
+  # Nginx reverse proxy with SSL/TLS termination
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro  # SSL certificates directory
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - api
+      - client
+    networks:
+      - agri-spray-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Backend (Symfony with FrankenPHP) - Production
+  api:
+    build:
+      context: ./api
+      target: frankenphp_prod
+    restart: unless-stopped
+    environment:
+      # Production settings
+      APP_ENV: prod
+      APP_SECRET: "${APP_SECRET}"
+      
+      # Server configuration - HTTP only for production behind nginx
+      SERVER_NAME: "http://localhost"
+      MERCURE_PUBLISHER_JWT_KEY: "${CADDY_MERCURE_JWT_SECRET}"
+      MERCURE_SUBSCRIBER_JWT_KEY: "${CADDY_MERCURE_JWT_SECRET}"
+      MERCURE_URL: "${CADDY_MERCURE_URL:-http://localhost/.well-known/mercure}"
+      MERCURE_PUBLIC_URL: "${MERCURE_PUBLIC_URL:-https://your-domain.com/.well-known/mercure}"
+      MERCURE_JWT_SECRET: "${CADDY_MERCURE_JWT_SECRET}"
+      
+      # Database connection
+      DATABASE_URL: "${DATABASE_URL}"
+      
+      # Application settings
+      SYMFONY_VERSION: "${SYMFONY_VERSION:-7.2.*}"
+      STABILITY: "${STABILITY:-stable}"
+      PHP_MEMORY_LIMIT: "${PHP_MEMORY_LIMIT:-1024M}"
+      
+      # Production optimizations
+      OPCACHE_PRELOAD: /app/config/preload.php
+      REALPATH_CACHE_SIZE: 4096K
+      REALPATH_CACHE_TTL: 600
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - api_uploads:/app/public/uploads  # For file uploads
+    expose:
+      - "80"
+    networks:
+      - agri-spray-network
+      - backend-network
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  # Client Frontend (Nuxt 4) - Production
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      target: runner
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NUXT_HOST: 0.0.0.0
+      NUXT_PORT: 3000
+      # API communication through nginx reverse proxy
+      API_BASE_URL: "${CLIENT_API_BASE_URL:-https://agri-spray.com/api}"
+    expose:
+      - "3000"
+    networks:
+      - agri-spray-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # PostgreSQL Database - Production
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-agri_spray}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_USER: "${POSTGRES_USER:-app}"
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-agri_spray}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      - ./backups:/backups:rw  # Database backups directory
+    networks:
+      - backend-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    # No external ports - only accessible from backend services
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+
+  # Backup service for database
+  backup:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    restart: "no"
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-agri_spray}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_USER: "${POSTGRES_USER:-app}"
+      PGPASSWORD: "${POSTGRES_PASSWORD}"
+    volumes:
+      - ./backups:/backups:rw
+    networks:
+      - backend-network
+    depends_on:
+      - database
+    entrypoint: |
+      sh -c '
+      echo "Starting backup service..."
+      while true; do
+        echo "Creating backup at $$(date)"
+        pg_dump -h database -U $$POSTGRES_USER $$POSTGRES_DB > /backups/backup_$$(date +%Y%m%d_%H%M%S).sql
+        echo "Backup completed"
+        # Keep only last 7 days of backups
+        find /backups -name "backup_*.sql" -mtime +7 -delete
+        # Sleep for 24 hours
+        sleep 86400
+      done
+      '
+
+  # Monitoring with basic health checks
+  monitoring:
+    image: alpine:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - agri-spray-network
+    entrypoint: |
+      sh -c '
+      apk add --no-cache curl docker-cli
+      while true; do
+        echo "Health check at $$(date)"
+        # Check if all services are healthy
+        docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "(api|client|database|nginx)"
+        sleep 300
+      done
+      '
+
+volumes:
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
+  database_data:
+    driver: local
+  nginx_logs:
+    driver: local
+  api_uploads:
+    driver: local
+
+networks:
+  # Frontend network - nginx, api, client
+  agri-spray-network:
+    driver: bridge
+    name: agri-spray-network
+  
+  # Backend network - api, database, backup
+  backend-network:
+    driver: bridge
+    name: backend-network
+    internal: false  # Allow internet access for API

@@ -1,0 +1,152 @@
+services:
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - api
+      - client
+    networks:
+      - agri-spray-network
+
+  # API Backend (Symfony with FrankenPHP)
+  api:
+    build:
+      context: ./api
+      target: frankenphp_dev
+    restart: unless-stopped
+    environment:
+      # Development settings
+      APP_ENV: "${APP_ENV:-dev}"
+      XDEBUG_MODE: "${XDEBUG_MODE:-off}"
+      FRANKENPHP_WORKER_CONFIG: watch
+      MERCURE_EXTRA_DIRECTIVES: demo
+      
+      # Server configuration - HTTP only for development (following Symfony docs)
+      SERVER_NAME: "http://localhost"
+      MERCURE_PUBLISHER_JWT_KEY: "${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}"
+      MERCURE_SUBSCRIBER_JWT_KEY: "${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}"
+      MERCURE_URL: "${CADDY_MERCURE_URL:-http://localhost/.well-known/mercure}"
+      MERCURE_PUBLIC_URL: "${MERCURE_PUBLIC_URL:-http://localhost/.well-known/mercure}"
+      MERCURE_JWT_SECRET: "${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}"
+      
+      # Database connection
+      DATABASE_URL: "${DATABASE_URL:-postgresql://app:!ChangeMe!@database:5432/agri_spray?serverVersion=16&charset=utf8}"
+      
+      # Application settings
+      SYMFONY_VERSION: "${SYMFONY_VERSION:-7.2.*}"
+      STABILITY: "${STABILITY:-stable}"
+      PHP_MEMORY_LIMIT: "${PHP_MEMORY_LIMIT:-1024M}"
+    volumes:
+      - ./api:/app:rw
+      - ./api/frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro
+      - ./api/frankenphp/conf.d/20-app.dev.ini:/usr/local/etc/php/app.conf.d/20-app.dev.ini:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      # Exclude vendor for better performance (optional)
+      # - /app/vendor
+    expose:
+      - "80"
+    extra_hosts:
+      # Ensure that host.docker.internal is correctly defined on Linux
+      - host.docker.internal:host-gateway
+    networks:
+      - agri-spray-network
+      - backend-network
+    depends_on:
+      database:
+        condition: service_healthy
+    tty: true
+
+  # Client Frontend (Nuxt 4)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      target: dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      NUXT_HOST: 0.0.0.0
+      NUXT_PORT: 3000
+      # API communication through nginx reverse proxy
+      API_BASE_URL: "${CLIENT_API_BASE_URL:-http://localhost/api}"
+    volumes:
+      - ./client:/app:rw
+      - /app/node_modules
+    expose:
+      - "3000"
+    networks:
+      - agri-spray-network
+    stdin_open: true
+    tty: true
+
+  # PostgreSQL Database
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-agri_spray}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-!ChangeMe!}"
+      POSTGRES_USER: "${POSTGRES_USER:-app}"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-agri_spray}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      # You may use a bind-mounted host directory instead
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+    networks:
+      - backend-network
+    # No external ports - only accessible from backend services
+
+  # PgAdmin (Development only)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "${PGADMIN_EMAIL:-admin@agri-spray.com}"
+      PGADMIN_DEFAULT_PASSWORD: "${PGADMIN_PASSWORD:-admin123}"
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "${PGADMIN_PORT:-8081}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - database
+    networks:
+      - backend-network
+    # PgAdmin only accessible directly, not through nginx for security
+
+volumes:
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
+  database_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  # Frontend network - nginx, api, client
+  agri-spray-network:
+    driver: bridge
+    name: agri-spray-network
+  
+  # Backend network - api, database, pgadmin
+  backend-network:
+    driver: bridge
+    name: backend-network
+    internal: false  # Allow internet access for API
