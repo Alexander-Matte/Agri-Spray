@@ -16,7 +16,7 @@
 
 {$CADDY_EXTRA_CONFIG}
 
-{$SERVER_NAME:localhost} {
+{$SERVER_NAME:localhost}, http://api {
 	log {
 		{$CADDY_SERVER_LOG_OPTIONS}
 		# Enhanced logging for debugging

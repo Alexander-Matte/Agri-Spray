@@ -1,5 +1,5 @@
 import { getCookie, setCookie } from 'h3'
-import { useJwtDecode } from '../../app/composables/useJwtDecode'
+import { useJwtDecode } from '../../../app/composables/useJwtDecode'
 
 interface JwtPayload {
   id: number
@@ -37,7 +37,6 @@ export default defineEventHandler(async (event) => {
           refresh_token: refreshToken
         },
         headers: {
-          Host: 'localhost',
           'Content-Type': 'application/json',
         },
       }

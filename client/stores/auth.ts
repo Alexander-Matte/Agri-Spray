@@ -6,6 +6,7 @@ import type { User as ApiUser } from '../src/interfaces/user'
 // Extended User interface that includes JWT payload fields
 export interface User extends ApiUser {
   id?: number
+  email: string
   roles?: string[]
   iat?: number
   exp?: number
@@ -19,13 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isAuthenticated = ref(false)  
   const isLoading = ref(false)
-
-  // Reset function for persistence plugin
-  const $reset = () => {
-    user.value = null
-    isAuthenticated.value = false
-    isLoading.value = false
-  }
+  const isCheckingAuth = ref(false)
 
   // Getters
   const hasRole = (role: string) => {
@@ -52,8 +47,11 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     
     try {
-      const { post } = useApi()
-      const response = await post<{ user: User; token: string; refreshToken: string }>('/api/auth', { email, password })
+      // Call the Nuxt server /nuxt-api/auth endpoint directly
+      const response = await $fetch<{ user: User; token: string; refreshToken: string }>('/nuxt-api/auth', {
+        method: 'POST',
+        body: { email, password }
+      })
       
       if (response && response.user) {
         console.log("Setting user data:", response.user)
@@ -81,13 +79,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = async () => {
     try {
-      // Call logout endpoint to invalidate tokens on backend
-      const { post } = useApi()
-      await post('/api/logout', {}, {
-        errorOptions: {
-          showNotification: false,
-          logToConsole: false
-        }
+      // Call Nuxt server logout endpoint to clear cookies
+      await $fetch('/nuxt-api/logout', {
+        method: 'POST'
       })
     } catch (error) {
       console.error('Logout error:', error)
@@ -95,93 +89,70 @@ export const useAuthStore = defineStore('auth', () => {
       // Clear local state
       clearAuth()
       // Navigate to login
-      window.location.href = '/login'
+      await navigateTo('/login')
     }
   }
 
-  // Check if token is expired
-  const isTokenExpired = () => {
-    console.log("isTokenExpired called", {
-      hasUser: !!user.value,
-      exp: user.value?.exp,
-      currentTime: Math.floor(Date.now() / 1000)
-    })
-    
-    if (!user.value?.exp) {
-      console.log("No expiration time found, considering expired")
-      return true
-    }
-    
-    const currentTime = Math.floor(Date.now() / 1000)
-    const isExpired = currentTime >= user.value.exp
-    
-    console.log("Token expiration check:", {
-      currentTime,
-      expirationTime: user.value.exp,
-      isExpired
-    })
-    
-    return isExpired
-  }
-
-  const refreshAuth = async () => {
-    try {
-      // Check if token is expired
-      if (isTokenExpired()) {
-        // TODO: Implement refresh token call to backend
-        // This will call your refresh endpoint with the refresh token from cookies
-        const { post } = useApi()
-        const response = await post<{ user: User; token: string; refreshToken: string }>('/api/refresh', {})
-        
-        if (response && response.user) {
-          user.value = response.user
-          isAuthenticated.value = true
-          return true
-        } else {
-          clearAuth()
-          return false
-        }
+  const checkAuth = async (): Promise<boolean> => {
+    // Prevent multiple simultaneous auth checks
+    if (isCheckingAuth.value) {
+      console.log("Auth check already in progress, waiting...")
+      // Wait for the current check to complete
+      while (isCheckingAuth.value) {
+        await new Promise(resolve => setTimeout(resolve, 100))
       }
+      return isAuthenticated.value
+    }
+
+    console.log("checkAuth called - checking server-side authentication")
+    
+    try {
+      isCheckingAuth.value = true
       
-      // Token is still valid
-      if (user.value) {
+      // Call the Nuxt server /nuxt-api/me endpoint directly
+      const response = await $fetch<{ authenticated: boolean; user?: User; error?: boolean; message?: string }>('/nuxt-api/me', {
+        method: 'GET'
+      })
+      
+      if (response && response.authenticated && response.user) {
+        console.log("Server confirmed authentication, setting user data:", response.user)
+        user.value = response.user
         isAuthenticated.value = true
         return true
+      } else {
+        console.log("Server authentication failed or no user data")
+        clearAuth()
+        return false
       }
+    } catch (error: any) {
+      console.error('Auth check failed:', error)
+      clearAuth()
       return false
-    } catch (error) {
-      console.error('Auth refresh failed:', error)
+    } finally {
+      isCheckingAuth.value = false
+    }
+  }
+
+  const refreshAuth = async (): Promise<boolean> => {
+    try {
+      console.log("Attempting to refresh authentication...")
+      const response = await $fetch<{ user: User; token: string; refreshToken: string }>('/nuxt-api/refresh', {
+        method: 'POST'
+      })
+      
+      if (response && response.user) {
+        console.log("Token refresh successful, updating user data:", response.user)
+        user.value = response.user
+        isAuthenticated.value = true
+        return true
+      } else {
+        throw new Error('Invalid refresh response')
+      }
+    } catch (error: any) {
+      console.error('Token refresh failed:', error)
       clearAuth()
       return false
     }
-  }
-
-  const checkAuth = async () => {
-    console.log("checkAuth called", {
-      hasUser: !!user.value,
-      isAuthenticated: isAuthenticated.value,
-      user: user.value
-    })
-    
-    // If we have a user in the persisted state, check if the token is still valid
-    if (user.value && isAuthenticated.value) {
-      console.log("User exists and is authenticated, checking token expiration")
-      // Check if token is expired
-      if (isTokenExpired()) {
-        console.log("Token is expired, trying to refresh")
-        // Token is expired, try to refresh it
-        return await refreshAuth()
-      } else {
-        console.log("Token is still valid")
-        // Token is still valid, ensure authentication state is set
-        isAuthenticated.value = true
-        return true
-      }
-    }
-    
-    console.log("No user or not authenticated, trying to refresh")
-    // No user or not authenticated, try to refresh
-    return await refreshAuth()
   }
 
   const setUser = (newUser: User) => {
@@ -195,34 +166,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Initialize auth state on app startup
-  const initializeAuth = () => {
-    console.log("Initializing auth state", {
-      hasUser: !!user.value,
-      isAuthenticated: isAuthenticated.value,
-      user: user.value
-    })
+  const initializeAuth = async () => {
+    console.log("Initializing auth state - will check server-side authentication")
     
-    // Check localStorage to see if persistence is working
-    if (process.client) {
-      const stored = localStorage.getItem('auth')
-      console.log("Stored in localStorage:", stored)
-    }
-    
-    // If we have a user but isAuthenticated is false, fix it
-    if (user.value && !isAuthenticated.value) {
-      console.log("Fixing auth state - user exists but not authenticated")
-      isAuthenticated.value = true
-    }
-    
-    // If we have a user and isAuthenticated is true, check token expiration
-    if (user.value && isAuthenticated.value) {
-      if (isTokenExpired()) {
-        console.log("Token is expired, clearing auth")
-        clearAuth()
-      } else {
-        console.log("Auth state is valid")
-      }
-    }
+    // Always check authentication server-side since we don't persist client state
+    return await checkAuth()
   }
 
   return {
@@ -230,23 +178,21 @@ export const useAuthStore = defineStore('auth', () => {
     user: readonly(user),
     isAuthenticated: readonly(isAuthenticated),
     isLoading: readonly(isLoading),
+    isCheckingAuth: readonly(isCheckingAuth),
     
     // Getters
     hasRole,
     isManager,
     isPilot,
     isLoader,
-    isTokenExpired,
     
     // Actions
     login,
     logout,
-    refreshAuth,
     checkAuth,
+    refreshAuth,
     setUser,
     clearAuth,
     initializeAuth,
   }
-}, {
-  persist: true
 }) 

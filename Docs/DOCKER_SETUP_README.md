@@ -75,7 +75,7 @@ Agri-Spray/
 ├── api/                          # Symfony backend
 ├── client/                       # Nuxt.js frontend
 ├── nginx/                        # Nginx configurations
-│   ├── nginx.conf               # Development config
+│   ├── nginx.dev.conf           # Development config
 │   └── nginx.prod.conf          # Production config
 ├── docker-compose.yaml          # Development setup
 ├── docker-compose.prod.yaml     # Production setup

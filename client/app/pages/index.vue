@@ -1,51 +1,5 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-          <div class="flex items-center">
-            <div class="flex items-center space-x-2">
-              <UIcon name="i-heroicons-paper-airplane" class="h-8 w-8 text-green-600" />
-              <span class="text-xl font-bold text-gray-900">Agri-Spray</span>
-            </div>
-          </div>
-          
-          <div class="hidden md:flex items-center space-x-8">
-            <a href="#features" class="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors">
-              Features
-            </a>
-            <a href="#about" class="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors">
-              About
-            </a>
-            <a href="#contact" class="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors">
-              Contact
-            </a>
-            <UButton
-              to="/login"
-              color="primary"
-              variant="solid"
-              icon="i-heroicons-arrow-right-on-rectangle"
-            >
-              Login
-            </UButton>
-          </div>
-
-          <!-- Mobile menu button -->
-          <div class="md:hidden flex items-center">
-            <UButton
-              to="/login"
-              color="primary"
-              variant="solid"
-              icon="i-heroicons-arrow-right-on-rectangle"
-              size="sm"
-            >
-              Login
-            </UButton>
-          </div>
-        </div>
-      </div>
-    </nav>
 
     <!-- Hero Section -->
     <div class="relative overflow-hidden">
@@ -370,3 +324,10 @@
     </footer>
   </div>
 </template> 
+
+<script setup lang="ts">
+// Set the layout for this page
+definePageMeta({
+  layout: 'default'
+})
+</script> 

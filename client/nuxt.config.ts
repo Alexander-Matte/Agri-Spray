@@ -32,7 +32,8 @@ export default defineNuxtConfig({
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
       ]
-    }
+    },
+    layoutTransition: { name: 'layout', mode: 'out-in' }
   },
 
   modules: [
@@ -41,14 +42,12 @@ export default defineNuxtConfig({
     '@nuxt/scripts',
     '@nuxt/test-utils',
     '@nuxt/ui',
-    '@pinia/nuxt',
-    'pinia-plugin-persistedstate/nuxt'
+    '@pinia/nuxt'
   ],
 
   pinia: {
-    autoImports: ['defineStore', 'storeToRefs']
+    storesDirs: ['./stores/**']
   },
-
 
   css: ['~/assets/css/main.css'],
 

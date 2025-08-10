@@ -153,6 +153,10 @@
 <script setup>
 import { useAuthStore } from '../../stores/auth'
 const authStore = useAuthStore()
+// Set the layout for this page
+definePageMeta({
+  layout: 'default'
+})
 
 // Form data - ensure it's properly initialized for SSR
 const form = ref({
