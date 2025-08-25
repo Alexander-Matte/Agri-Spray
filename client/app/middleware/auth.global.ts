@@ -5,7 +5,7 @@ export default defineNuxtRouteMiddleware((to) => {
   const authStore = useAuthStore()
 
   // Public routes that don’t require auth
-  const publicRoutes = ['/', '/login']
+  const publicRoutes = ['/', '/login', '/styleguide']
 
   if (publicRoutes.includes(to.path)) {
     if (to.path === '/login' && authStore.isAuthenticated) {

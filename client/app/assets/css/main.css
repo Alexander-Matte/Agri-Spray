@@ -1,2 +1,345 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+/* Agri-Spray Custom Theme */
+@theme static {
+  /* Custom Fonts */
+  --font-sans: 'Inter', 'system-ui', 'sans-serif';
+  --font-mono: 'JetBrains Mono', 'monospace';
+  
+  /* Custom Breakpoints */
+  --breakpoint-3xl: 1920px;
+  --breakpoint-4xl: 2560px;
+  
+  /* Agri-Spray Primary Colors (Green-based) */
+  --color-primary-50: #f0fdf4;
+  --color-primary-100: #dcfce7;
+  --color-primary-200: #bbf7d0;
+  --color-primary-300: #86efac;
+  --color-primary-400: #4ade80;
+  --color-primary-500: #22c55e;
+  --color-primary-600: #16a34a;
+  --color-primary-700: #15803d;
+  --color-primary-800: #166534;
+  --color-primary-900: #14532d;
+  --color-primary-950: #052e16;
+  
+  /* Agri-Spray Secondary Colors (Blue-based) */
+  --color-secondary-50: #eff6ff;
+  --color-secondary-100: #dbeafe;
+  --color-secondary-200: #bfdbfe;
+  --color-secondary-300: #93c5fd;
+  --color-secondary-400: #60a5fa;
+  --color-secondary-500: #3b82f6;
+  --color-secondary-600: #2563eb;
+  --color-secondary-700: #1d4ed8;
+  --color-secondary-800: #1e40af;
+  --color-secondary-900: #1e3a8a;
+  --color-secondary-950: #172554;
+  
+  /* Success Colors (Green variants) */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-success-900: #14532d;
+  --color-success-950: #052e16;
+  
+  /* Warning Colors (Yellow/Orange variants) */
+  --color-warning-50: #fff7ed;
+  --color-warning-100: #ffedd5;
+  --color-warning-200: #fed7aa;
+  --color-warning-300: #fdba74;
+  --color-warning-400: #fb923c;
+  --color-warning-500: #f97316;
+  --color-warning-600: #ea580c;
+  --color-warning-700: #c2410c;
+  --color-warning-800: #9a3412;
+  --color-warning-900: #7c2d12;
+  --color-warning-950: #431407;
+  
+  /* Error Colors (Red variants) */
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+  --color-error-950: #450a0a;
+  
+  /* Info Colors (Blue variants) */
+  --color-info-50: #eff6ff;
+  --color-info-100: #dbeafe;
+  --color-info-200: #bfdbfe;
+  --color-info-300: #93c5fd;
+  --color-info-400: #60a5fa;
+  --color-info-500: #3b82f6;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+  --color-info-800: #1e40af;
+  --color-info-900: #1e3a8a;
+  --color-info-950: #172554;
+  
+  /* Neutral Colors (Gray scale) */
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-500: #6b7280;
+  --color-neutral-600: #4b5563;
+  --color-neutral-700: #374151;
+  --color-neutral-800: #1f2937;
+  --color-neutral-900: #111827;
+  --color-neutral-950: #030712;
+  
+  /* Custom Container Sizes */
+  --container-8xl: 90rem;
+  --container-9xl: 100rem;
+  
+  /* Custom Border Radius */
+  --radius-agri: 0.75rem;
+  --radius-agri-lg: 1rem;
+  --radius-agri-xl: 1.5rem;
+  
+  /* Custom Spacing */
+  --spacing-agri-xs: 0.25rem;
+  --spacing-agri-sm: 0.5rem;
+  --spacing-agri-md: 1rem;
+  --spacing-agri-lg: 1.5rem;
+  --spacing-agri-xl: 2rem;
+  --spacing-agri-2xl: 3rem;
+  
+  /* Custom Font Sizes */
+  --font-size-agri-xs: 0.75rem;
+  --font-size-agri-sm: 0.875rem;
+  --font-size-agri-base: 1rem;
+  --font-size-agri-lg: 1.125rem;
+  --font-size-agri-xl: 1.25rem;
+  --font-size-agri-2xl: 1.5rem;
+  --font-size-agri-3xl: 1.875rem;
+  --font-size-agri-4xl: 2.25rem;
+}
+
+/* Root CSS Variables for Nuxt UI */
+:root {
+  /* Base Radius */
+  --ui-radius: 0.5rem;
+  
+  /* Container */
+  --ui-container: var(--container-7xl);
+  
+  /* Agri-Spray Specific Gradients */
+  --agri-gradient: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%);
+  --agri-gradient-reverse: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  --agri-gradient-dark: linear-gradient(135deg, #14532d 0%, #1e3a8a 100%);
+  --agri-gradient-warm: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+  --agri-gradient-cool: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  
+  /* Agri-Spray Specific Shadows */
+  --agri-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.1), 0 2px 4px -1px rgba(22, 163, 74, 0.06);
+  --agri-shadow-lg: 0 10px 15px -3px rgba(22, 163, 74, 0.1), 0 4px 6px -2px rgba(22, 163, 74, 0.05);
+  --agri-shadow-xl: 0 20px 25px -5px rgba(22, 163, 74, 0.1), 0 10px 10px -5px rgba(22, 163, 74, 0.04);
+  
+  /* Agri-Spray Specific Animations */
+  --agri-pulse: agri-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --agri-bounce: agri-bounce 1s infinite;
+  --agri-spin: agri-spin 1s linear infinite;
+}
+
+/* Custom Keyframes */
+@keyframes agri-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes agri-bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+@keyframes agri-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Agri-Spray Specific Utility Classes */
+.agri-gradient {
+  background: var(--agri-gradient);
+}
+
+.agri-gradient-reverse {
+  background: var(--agri-gradient-reverse);
+}
+
+.agri-gradient-dark {
+  background: var(--agri-gradient-dark);
+}
+
+.agri-gradient-warm {
+  background: var(--agri-gradient-warm);
+}
+
+.agri-gradient-cool {
+  background: var(--agri-gradient-cool);
+}
+
+.agri-shadow {
+  box-shadow: var(--agri-shadow);
+}
+
+.agri-shadow-lg {
+  box-shadow: var(--agri-shadow-lg);
+}
+
+.agri-shadow-xl {
+  box-shadow: var(--agri-shadow-xl);
+}
+
+/* Animation Utilities */
+.animate-agri-pulse {
+  animation: var(--agri-pulse);
+}
+
+.animate-agri-bounce {
+  animation: var(--agri-bounce);
+}
+
+.animate-agri-spin {
+  animation: var(--agri-spin);
+}
+
+/* Custom Component Styles */
+.agri-card {
+  @apply bg-white rounded-lg shadow-sm border border-neutral-200 hover:shadow-md transition-shadow duration-200;
+}
+
+.agri-button-primary {
+  @apply bg-primary-600 hover:bg-primary-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+}
+
+.agri-button-secondary {
+  @apply bg-secondary-600 hover:bg-secondary-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+}
+
+.agri-button-warning {
+  @apply bg-warning-600 hover:bg-warning-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+}
+
+.agri-button-error {
+  @apply bg-error-600 hover:bg-error-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+}
+
+.agri-button-success {
+  @apply bg-success-600 hover:bg-success-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+}
+
+/* Demo Mode Specific Styles */
+.demo-mode {
+  @apply border-2 border-warning-200 bg-warning-50;
+}
+
+.demo-mode .demo-accent {
+  @apply bg-warning-100 text-warning-600;
+}
+
+.demo-mode .demo-text {
+  @apply text-warning-800;
+}
+
+/* Dashboard Specific Styles */
+.dashboard-header {
+  @apply bg-white rounded-lg shadow p-6 border border-neutral-200;
+}
+
+.dashboard-stat {
+  @apply text-center p-4;
+}
+
+.dashboard-stat-icon {
+  @apply flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full;
+}
+
+.dashboard-stat-value {
+  @apply text-3xl font-bold;
+}
+
+.dashboard-stat-label {
+  @apply text-lg font-semibold text-neutral-900;
+}
+
+.dashboard-stat-description {
+  @apply text-sm text-neutral-500 mt-1;
+}
+
+/* Form Styles */
+.agri-form-input {
+  @apply w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-neutral-600;
+}
+
+.agri-form-label {
+  @apply block text-sm font-medium text-neutral-700 mb-2;
+}
+
+.agri-form-checkbox {
+  @apply h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded bg-neutral-50;
+}
+
+/* Navigation Styles */
+.agri-nav-link {
+  @apply border-b-2 border-transparent py-4 px-1 text-sm font-medium text-neutral-500 hover:text-neutral-700 hover:border-neutral-300 transition-colors;
+}
+
+.agri-nav-link-active {
+  @apply border-primary-500 text-primary-600;
+}
+
+/* Status Indicators */
+.status-success {
+  @apply bg-success-100 text-success-800;
+}
+
+.status-warning {
+  @apply bg-warning-100 text-warning-800;
+}
+
+.status-error {
+  @apply bg-error-100 text-error-800;
+}
+
+.status-info {
+  @apply bg-info-100 text-info-800;
+}
+
+/* Responsive Utilities */
+@media (min-width: 1920px) {
+  .container-3xl {
+    max-width: var(--breakpoint-3xl);
+  }
+}
+
+@media (min-width: 2560px) {
+  .container-4xl {
+    max-width: var(--breakpoint-4xl);
+  }
+}
