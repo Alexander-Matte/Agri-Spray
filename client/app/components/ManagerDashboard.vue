@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6 manager-dashboard-component">
     <!-- Demo Mode Banner -->
-    <div v-if="isDemo" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+    <div v-if="isDemo" class="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
       <div class="flex items-center">
         <UIcon name="i-heroicons-information-circle" class="h-5 w-5 text-yellow-400 mr-2" />
         <div>
@@ -39,7 +39,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <UCard 
         class="text-center" 
-        :class="{ 'border-2 border-yellow-200': isDemo }"
+        :class="{ 'border-2': isDemo }"
       >
         <div class="p-4">
           <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full" :class="isDemo ? 'bg-yellow-100' : 'bg-green-100'">
@@ -57,7 +57,7 @@
 
       <UCard 
         class="text-center" 
-        :class="{ 'border-2 border-yellow-200': isDemo }"
+        :class="{ 'border-2': isDemo }"
       >
         <div class="p-4">
           <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full" :class="isDemo ? 'bg-yellow-100' : 'bg-green-100'">
@@ -75,7 +75,7 @@
 
       <UCard 
         class="text-center" 
-        :class="{ 'border-2 border-yellow-200': isDemo }"
+        :class="{ 'border-2': isDemo }"
       >
         <div class="p-4">
           <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full" :class="isDemo ? 'bg-yellow-100' : 'bg-purple-100'">
@@ -93,7 +93,7 @@
 
       <UCard 
         class="text-center" 
-        :class="{ 'border-2 border-yellow-200': isDemo }"
+        :class="{ 'border-2': isDemo }"
       >
         <div class="p-4">
           <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full" :class="isDemo ? 'bg-yellow-100' : 'bg-red-100'">
@@ -112,7 +112,7 @@
 
     <!-- Recent Activity -->
     <UCard 
-      :class="{ 'border-2 border-yellow-200': isDemo }"
+      :class="{ 'border-2': isDemo }"
     >
       <template #header>
         <h3 class="text-lg font-medium text-gray-900">
@@ -234,8 +234,8 @@ const refreshData = () => {
 
 const getActivityColor = (type: string) => {
   const colors = {
-    mission: 'bg-green-500',
-    maintenance: 'bg-blue-500',
+    mission: 'bg-primary-500',
+    maintenance: 'bg-secondary-500',
     team: 'bg-green-600',
     default: 'bg-gray-500'
   }

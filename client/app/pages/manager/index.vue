@@ -37,11 +37,6 @@
 <script setup lang="ts">
 import { useAuthStore } from '../../../stores/auth'
 
-// Page metadata
-definePageMeta({
-  middleware: 'manager'
-})
-
 // Auth store
 const authStore = useAuthStore()
 

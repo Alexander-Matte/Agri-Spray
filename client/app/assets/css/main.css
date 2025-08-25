@@ -1,8 +1,14 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+@layer utilities {
+  :root {
+    --ui-bg: var(--color-bg-default); /* or your custom color */
+  }
+}
+
 /* Agri-Spray Custom Theme */
-@theme static {
+@theme {
   /* Custom Fonts */
   --font-sans: 'Inter', 'system-ui', 'sans-serif';
   --font-mono: 'JetBrains Mono', 'monospace';
@@ -102,6 +108,13 @@
   --color-neutral-900: #111827;
   --color-neutral-950: #030712;
   
+  /* Custom Background Colors */
+  --color-bg-default: #ffffff;
+  --color-bg-muted:   #f9fafb;
+  --color-bg-subtle:  #f3f4f6;
+  --color-bg-emphasis:#e5e7eb;
+  
+  
   /* Custom Container Sizes */
   --container-8xl: 90rem;
   --container-9xl: 100rem;
@@ -128,10 +141,7 @@
   --font-size-agri-2xl: 1.5rem;
   --font-size-agri-3xl: 1.875rem;
   --font-size-agri-4xl: 2.25rem;
-}
-
-/* Root CSS Variables for Nuxt UI */
-:root {
+  
   /* Base Radius */
   --ui-radius: 0.5rem;
   
@@ -153,7 +163,7 @@
   /* Agri-Spray Specific Animations */
   --agri-pulse: agri-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --agri-bounce: agri-bounce 1s infinite;
-  --agri-spin: agri-spin 1s linear infinite;
+  --agri-spin: agri-spin 3s linear infinite;
 }
 
 /* Custom Keyframes */

@@ -1,4 +1,37 @@
 <template>
+  <!-- For purging to pick up the dynamic classes -->
+  <div class="hidden">
+    <!-- Primary -->
+    bg-primary-50 bg-primary-100 bg-primary-200 bg-primary-300 bg-primary-400 bg-primary-500 bg-primary-600 bg-primary-700 bg-primary-800 bg-primary-900 bg-primary-950
+    text-primary-50 text-primary-100 text-primary-200 text-primary-300 text-primary-400 text-primary-500 text-primary-600 text-primary-700 text-primary-800 text-primary-900 text-primary-950
+
+    <!-- Secondary -->
+    bg-secondary-50 bg-secondary-100 bg-secondary-200 bg-secondary-300 bg-secondary-400 bg-secondary-500 bg-secondary-600 bg-secondary-700 bg-secondary-800 bg-secondary-900 bg-secondary-950
+    text-secondary-50 text-secondary-100 text-secondary-200 text-secondary-300 text-secondary-400 text-secondary-500 text-secondary-600 text-secondary-700 text-secondary-800 text-secondary-900 text-secondary-950
+
+    <!-- Success -->
+    bg-success-50 bg-success-100 bg-success-200 bg-success-300 bg-success-400 bg-success-500 bg-success-600 bg-success-700 bg-success-800 bg-success-900 bg-success-950
+    text-success-50 text-success-100 text-success-200 text-success-300 text-success-400 text-success-500 text-success-600 text-success-700 text-success-800 text-success-900 text-success-950
+
+    <!-- Warning -->
+    bg-warning-50 bg-warning-100 bg-warning-200 bg-warning-300 bg-warning-400 bg-warning-500 bg-warning-600 bg-warning-700 bg-warning-800 bg-warning-900 bg-warning-950
+    text-warning-50 text-warning-100 text-warning-200 text-warning-300 text-warning-400 text-warning-500 text-warning-600 text-warning-700 text-warning-800 text-warning-900 text-warning-950
+
+    <!-- Error -->
+    bg-error-50 bg-error-100 bg-error-200 bg-error-300 bg-error-400 bg-error-500 bg-error-600 bg-error-700 bg-error-800 bg-error-900 bg-error-950
+    text-error-50 text-error-100 text-error-200 text-error-300 text-error-400 text-error-500 text-error-600 text-error-700 text-error-800 text-error-900 text-error-950
+
+    <!-- Info -->
+    bg-info-50 bg-info-100 bg-info-200 bg-info-300 bg-info-400 bg-info-500 bg-info-600 bg-info-700 bg-info-800 bg-info-900 bg-info-950
+    text-info-50 text-info-100 text-info-200 text-info-300 text-info-400 text-info-500 text-info-600 text-info-700 text-info-800 text-info-900 text-info-950
+
+    <!-- Neutral -->
+    bg-neutral-50 bg-neutral-100 bg-neutral-200 bg-neutral-300 bg-neutral-400 bg-neutral-500 bg-neutral-600 bg-neutral-700 bg-neutral-800 bg-neutral-900 bg-neutral-950
+    text-neutral-50 text-neutral-100 text-neutral-200 text-neutral-300 text-neutral-400 text-neutral-500 text-neutral-600 text-neutral-700 text-neutral-800 text-neutral-900 text-neutral-950
+  </div>
+
+
+
   <div class="min-h-screen bg-neutral-50">
     <!-- Header -->
     <div class="bg-white border-b border-neutral-200">
@@ -54,7 +87,7 @@
                 :class="`bg-primary-${shade}`"
               ></div>
               <p class="text-xs font-mono text-neutral-600">primary-{{ shade }}</p>
-              <p class="text-xs font-mono text-neutral-500">#{{ getColorHex(`primary-${shade}`) }}</p>
+              <p class="text-xs font-mono text-neutral-500">{{ getColorHex(`primary-${shade}`) }}</p>
             </div>
           </div>
         </div>
@@ -69,7 +102,7 @@
                 :class="`bg-secondary-${shade}`"
               ></div>
               <p class="text-xs font-mono text-neutral-600">secondary-{{ shade }}</p>
-              <p class="text-xs font-mono text-neutral-500">#{{ getColorHex(`secondary-${shade}`) }}</p>
+              <p class="text-xs font-mono text-neutral-500">{{ getColorHex(`secondary-${shade}`) }}</p>
             </div>
           </div>
         </div>
@@ -522,7 +555,49 @@
           </p>
         </div>
 
-        <UTable :rows="tableData" :columns="tableColumns" />
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-neutral-200">
+            <thead class="bg-neutral-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Mission
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Pilot
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Progress
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-neutral-200">
+              <tr v-for="row in tableData" :key="row.id">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
+                  {{ row.mission }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
+                  {{ row.pilot }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        :class="{
+                          'bg-green-100 text-green-800': row.status === 'Active',
+                          'bg-blue-100 text-blue-800': row.status === 'Completed',
+                          'bg-yellow-100 text-yellow-800': row.status === 'Scheduled'
+                        }">
+                    {{ row.status }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
+                  {{ row.progress }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <!-- Navigation -->
@@ -692,12 +767,7 @@ const tableData = [
   { id: 3, mission: 'Field C Herbicide', pilot: 'Mike Wilson', status: 'Scheduled', progress: '0%' }
 ]
 
-const tableColumns = [
-  { key: 'mission', label: 'Mission' },
-  { key: 'pilot', label: 'Pilot' },
-  { key: 'status', label: 'Status' },
-  { key: 'progress', label: 'Progress' }
-]
+
 
 // Tab items for demonstration
 const tabItems = [
@@ -741,17 +811,16 @@ onMounted(() => {
 
 // Helper function to get color hex values (placeholder)
 const getColorHex = (colorClass: string) => {
-  // This would ideally extract actual hex values from CSS
-  // For now, returning placeholder values
-  const colorMap: Record<string, string> = {
-    'primary-50': '#f0fdf4',
-    'primary-500': '#22c55e',
-    'primary-950': '#052e16',
-    'secondary-50': '#eff6ff',
-    'secondary-500': '#3b82f6',
-    'secondary-950': '#172554'
+  // Extract actual hex values from CSS custom properties
+  const cssVarName = `--color-${colorClass}`
+  const computedStyle = getComputedStyle(document.documentElement)
+  const hexValue = computedStyle.getPropertyValue(cssVarName).trim()
+  
+  // If the CSS variable exists and has a value, return it
+  if (hexValue && hexValue !== '') {
+    return hexValue
   }
-  return colorMap[colorClass] || '#000000'
+  
 }
 </script>
 
