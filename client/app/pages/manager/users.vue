@@ -9,13 +9,22 @@
             Manage system users, roles, and permissions
           </p>
         </div>
-        <UButton
-          color="primary"
-          variant="solid"
-          icon="i-heroicons-plus"
+        <UModal
+          title="Modal with close button"
+          :close="{
+            color: 'primary',
+            variant: 'outline',
+            class: 'rounded-full'
+          }"
         >
-          Add User
-        </UButton>
+          <UButton label="Add User" class="bg-primary-200 text-primary-600" variant="subtle" />
+
+          <template #body>
+            <div>
+              <UserFormModal />
+            </div>
+          </template>
+        </UModal>
       </div>
     </div>
 
@@ -103,46 +112,15 @@
 </template>
 
 <script setup lang="ts">
+import UserFormModal from '~/components/forms/UserFormModal.vue'
+
 // Set the layout for this page
 definePageMeta({
   layout: 'dashboard'
 })
 
 // Sample user data
-const users = ref([
-  {
-    id: 1,
-    name: 'John Manager',
-    email: 'john.manager@agri-spray.com',
-    role: 'Manager',
-    status: 'active',
-    lastActive: '2 hours ago'
-  },
-  {
-    id: 2,
-    name: 'Sarah Pilot',
-    email: 'sarah.pilot@agri-spray.com',
-    role: 'Pilot',
-    status: 'active',
-    lastActive: '1 hour ago'
-  },
-  {
-    id: 3,
-    name: 'Mike Loader',
-    email: 'mike.loader@agri-spray.com',
-    role: 'Loader',
-    status: 'active',
-    lastActive: '30 minutes ago'
-  },
-  {
-    id: 4,
-    name: 'Demo User',
-    email: 'demo@agri-spray.com',
-    role: 'Demo',
-    status: 'inactive',
-    lastActive: '1 day ago'
-  }
-])
+const users = ref([])
 
 const getRoleColor = (role: string) => {
   const colors = {
@@ -152,5 +130,55 @@ const getRoleColor = (role: string) => {
     'Demo': 'neutral'
   }
   return colors[role as keyof typeof colors] || 'neutral'
+}
+
+const addUser = () => {
+  console.log('addUser')
+}
+
+import * as z from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
+
+
+// Form schema based on User interface
+const schema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  plainPassword: z.string()
+    .min(8, 'Password must be at least 8 characters long')
+    .regex(/^(?=.*[a-z])/, 'Password must contain at least one lowercase letter')
+    .regex(/^(?=.*[A-Z])/, 'Password must contain at least one uppercase letter')
+    .regex(/^(?=.*\d)/, 'Password must contain at least one number')
+    .regex(/^(?=.*[@$!%*?&])/, 'Password must contain at least one special character'),
+  roles: z.array(z.string()).min(1, 'At least one role must be selected')
+})
+
+type Schema = z.output<typeof schema>
+
+// Available roles with proper structure for USelectMenu
+const availableRoles = [
+  { label: 'Manager', value: 'ROLE_MANAGER', icon: 'i-heroicons-user-group' },
+  { label: 'Admin', value: 'ROLE_ADMIN', icon: 'i-heroicons-shield-check' },
+  { label: 'Pilot', value: 'ROLE_PILOT', icon: 'i-heroicons-paper-airplane' },
+  { label: 'Loader', value: 'ROLE_LOADER', icon: 'i-heroicons-truck' }
+]
+
+// Form state
+const state = reactive<Partial<Schema>>({
+  email: '',
+  plainPassword: '',
+  roles: []
+})
+
+
+
+// Reset form function - must be declared before watch
+const resetForm = () => {
+  state.email = ''
+  state.plainPassword = ''
+  state.roles = []
+}
+
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+  console.log(event.data)
 }
 </script>
